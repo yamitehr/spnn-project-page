@@ -1,305 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="color-scheme" content="light">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPNN: Pseudo-Invertible Neural Networks</title>
+  <meta name="color-scheme" content="light">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPNN: Pseudo-Invertible Neural Networks</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
-    <style>
-        html { scroll-behavior: smooth; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            background-image: radial-gradient(circle at top, #ffffff, #f8fafc);
-        }
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #020617;
-                color: #cbd5e1;
-                background-image: radial-gradient(circle at top, #1e293b, #020617);
-            }
-            .paper-card {
-                background-color: #0f172a80;
-                border-color: #334155;
-                backdrop-filter: blur(8px);
-            }
-            .bibtex-block {
-                background-color: #020617;
-                border-color: #334155;
-            }
-        }
-        .katex { font-size: 1.1em !important; }
+  <style>
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      background-image: radial-gradient(circle at top, #ffffff, #f8fafc);
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #020617;
+        color: #cbd5e1;
+        background-image: radial-gradient(circle at top, #1e293b, #020617);
+      }
+      .paper-card {
+        background-color: #0f172a80;
+        border-color: #334155;
+        backdrop-filter: blur(8px);
+      }
+      .bibtex-block {
+        background-color: #020617;
+        border-color: #334155;
+      }
+    }
+    .katex { font-size: 1.1em !important; }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
 
-        #sticky-nav {
-            transform: translateY(-100%);
-            opacity: 0;
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        #sticky-nav.scrolled {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        .code-button { display: none !important; }
+    #sticky-nav {
+      transform: translateY(-100%);
+      opacity: 0;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    }
+    #sticky-nav.scrolled {
+      transform: translateY(0);
+      opacity: 1;
+    }
 
+    /* Make images ~half-size-ish while keeping them centered and responsive */
+    .figure-img {
+      width: 100%;
+      max-width: 520px;      /* ~half of typical container width */
+      margin: 0 auto;
+      display: block;
+    }
+    .paper-card.compact {
+      padding: 0.9rem;       /* slightly smaller padding around figures */
+    }
 
-
-    </style>
+    /* Code button: "Coming soon" look */
+    .code-button.coming-soon {
+      opacity: 0.9;
+      position: relative;
+    }
+    .code-button.coming-soon span.badge {
+      margin-left: 0.35rem;
+      font-size: 0.7rem;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+    }
+  </style>
 </head>
+
 <body class="antialiased">
 
-    <nav id="sticky-nav" class="fixed top-0 left-0 right-0 z-50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <span class="font-semibold text-slate-800 dark:text-slate-200 text-lg tracking-tight">Pseudo-Invertible Neural Networks (SPNN)</span>
-                <div class="flex items-center gap-2">
-                    <!-- TODO: Replace with your links -->
-                    <a href="https://arxiv.org/" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 rounded-md font-semibold shadow-sm hover:bg-slate-700 dark:hover:bg-slate-300 transition-transform duration-200 hover:-translate-y-0.5">
-                        <i data-lucide="file-text" class="w-4 h-4"></i> Paper
-                    </a>
-                    <a href="https://github.com/assafshocher/PINN" class="code-button inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white rounded-md font-semibold shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5">
-                        <i data-lucide="github" class="w-4 h-4"></i> Code
-                    </a>
-                    <a href="#cite" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white rounded-md font-semibold shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5">
-                        <i data-lucide="quote" class="w-4 h-4"></i> Cite
-                    </a>
-                </div>
-            </div>
+  <nav id="sticky-nav" class="fixed top-0 left-0 right-0 z-50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <span class="font-semibold text-slate-800 dark:text-slate-200 text-lg tracking-tight">
+          Pseudo-Invertible Neural Networks (SPNN)
+        </span>
+
+        <div class="flex items-center gap-2">
+          <a href="https://arxiv.org/" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 rounded-md font-semibold shadow-sm hover:bg-slate-700 dark:hover:bg-slate-300 transition-transform duration-200 hover:-translate-y-0.5">
+            <i data-lucide="file-text" class="w-4 h-4"></i> Paper
+          </a>
+
+          <!-- Code: coming soon + funny link -->
+          <a href="assets/penrose.jpg" class="code-button coming-soon inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white rounded-md font-semibold shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5" title="Coming soon 😉">
+            <i data-lucide="github" class="w-4 h-4"></i>
+            Code <span class="badge">coming soon</span>
+          </a>
+
+          <a href="#cite" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white rounded-md font-semibold shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5">
+            <i data-lucide="quote" class="w-4 h-4"></i> Cite
+          </a>
         </div>
-    </nav>
+      </div>
+    </div>
+  </nav>
 
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
 
-        <header class="text-center space-y-4">
-
-            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-fuchsia-500 animate-fade-in-up" style="animation-delay: 100ms;">
-                Pseudo-Invertible Neural Networks
-            </h1>
-
-            <div class="authors text-lg pt-2 animate-fade-in-up" style="animation-delay: 300ms;">
-                <span class="font-medium text-sky-600 dark:text-sky-400">Yamit Ehrlich</span><sup>1</sup>,
-                <span class="font-medium text-sky-600 dark:text-sky-400">Nimrod Berman</span><sup>2</sup>,
-                <span class="font-medium text-sky-600 dark:text-sky-400">Assaf Shocher</span><sup>1</sup>
-            </div>
-
-            <div class="affiliations text-md text-slate-500 dark:text-slate-400 animate-fade-in-up" style="animation-delay: 400ms;">
-                <sup>1</sup>Technion &nbsp;&nbsp; <sup>2</sup>Ben-Gurion University
-            </div>
-
-            <div class="flex items-center justify-center flex-wrap gap-4 pt-6 animate-fade-in-up" style="animation-delay: 500ms;">
-                <!-- TODO: Replace with your links -->
-                <a href="https://arxiv.org/" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 rounded-lg font-semibold shadow-md hover:bg-slate-700 dark:hover:bg-slate-300 transition-transform duration-200 hover:-translate-y-0.5">
-                    <i data-lucide="file-text" class="w-4 h-4"></i>
-                    Paper
-                </a>
-                <a href="https://github.com/assafshocher/PINN" class="code-button inline-flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white rounded-lg font-semibold shadow-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5">
-                    <i data-lucide="github" class="w-4 h-4"></i>
-                    Code
-                </a>
-                <a href="#cite" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white rounded-lg font-semibold shadow-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5">
-                    <i data-lucide="quote" class="w-4 h-4"></i>
-                    Cite
-                </a>
-            </div>
-        </header>
-
-        <!-- Hero Figure -->
-        <section class="mt-16 md:mt-20">
-             <div class="paper-card rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
-                <img src="assets/spnn_fig_method.jpg" alt="SPNN block architecture diagram" class="rounded-lg w-full">
-                <p class="text-center text-sm mt-2 text-slate-600 dark:text-slate-400">
-                    <b>SPNN architecture.</b> A surjective coupling block with an explicit pseudo-inverse $g^\dagger$ implemented via an auxiliary network $r$.
-                </p>
-            </div>
-        </section>
-
-        <!-- Abstract -->
-        <section id="abstract" class="mt-12 md:mt-16">
-            <h3 class="text-2xl font-bold mb-4">Abstract</h3>
-            <p class="text-lg leading-relaxed text-slate-700 dark:text-slate-300">
-                The Moore-Penrose Pseudo-inverse (PInv) is the fundamental solution for linear systems. We generalize PInv to the non-linear regime and introduce
-                <b>Surjective Pseudo-invertible Neural Networks (SPNN)</b>, a class of architectures designed to admit a tractable non-linear pseudo-inverse.
-                Our construction satisfies reflexive Penrose-style consistency and supports null-space projection. Building on this, we formalize
-                <b>Non-Linear Back-Projection (NLBP)</b>, a method that enforces consistency constraints for non-linear surjective mappings.
-                We leverage SPNNs and NLBP to expand zero-shot inverse problems: extending diffusion-based null-space projection from linear degradations to
-                broad non-linear degradations (from optical distortions to semantic abstractions like classification), enabling zero-shot inversion and precise semantic control without retraining the diffusion prior.
-            </p>
-        </section>
-
-        <!-- Key Results -->
-        <section class="mt-12 md:mt-16">
-            <h3 class="text-2xl font-bold mb-6">Method</h3>
-            <div class="space-y-8">
-
-                <div>
-                    <h4 class="text-xl font-semibold mb-3">Non-Linear Back-Projection (NLBP)</h4>
-                    <div class="paper-card rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
-                        <div class="paper-card rounded-xl border border-slate-200 shadow-lg p-6">
-                          <pre class="text-sm leading-relaxed font-mono text-slate-800 dark:text-slate-200 overflow-x-auto">
-                        <b>Algorithm 1</b>  Non-Linear Null-Space Projection (Simplified)
-
-                        <b>Input:</b> Measurement y, Diffusion model ε<sub>θ</sub>, SPNN G, scale λ
-                        <b>Initialize:</b> x<sub>T</sub> ∼ 𝒩(0, I)
-
-                        <b>for</b> t = T, …, 1 <b>do</b>
-                            x̂<sub>0|t</sub> ← Predict x₀ from x<sub>t</sub> using ε<sub>θ</sub>(x<sub>t</sub>, t)
-                            x̂′<sub>0|t</sub> ← NLBP(x̂<sub>0|t</sub>, y, λ)
-                            x<sub>t−1</sub> ← Sample q(x<sub>t−1</sub> | x̂′<sub>0|t</sub>, x<sub>t</sub>)
-                        <b>end for</b>
-
-                        <b>Return:</b> x₀
-                          </pre>
-
-                        </div>
-
-                        <p class="text-center text-sm mt-3 text-slate-600 dark:text-slate-400">
-                          We define NLBP as a closed-form projection in the completed space that guides the diffusion process at each timestep by enforcing semantic consistency while preserving null-space structure. Given an estimate $x$ and a target measurement $y$, the update is
-                          $$
-                          x' = G^{-1}\!\left( G(x) - G\!\big(g^\dagger(g(x))\big) + G\!\big(g^\dagger(y)\big) \right),
-                          $$
-                          which guarantees $g(x') = y$ while leaving the null-space component invariant in the induced $G$-metric.
-                        </p>
+    <header class="text-center space-y-4">
+      <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-fuchsia-500 animate-fade-in-up" style="animation-delay: 100ms;">
+        Pseudo-Invertible Neural Networks
+      </h1>
 
 
-                    </div>
-                </div>
-                <h3 class="text-2xl font-bold mb-6">Key Results</h3>
-                <div>
-                    <h4 class="text-xl font-semibold mb-3">Reconstruction from Semantics</h4>
-                    <div class="paper-card rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
-                        <img src="assets/spnn_res.jpg" alt="Reconstruction from semantics (CelebA-HQ)" class="rounded-lg w-full">
-                        <p class="text-center text-sm mt-3 text-slate-600 dark:text-slate-400">
-                            Using only a low-dimensional semantic measurement (e.g., 40 attribute logits), NLBP-guided diffusion reconstructs photorealistic faces that match the target semantics without retraining.
-                        </p>
-                    </div>
-                </div>
+      <div class="authors text-lg pt-2 animate-fade-in-up" style="animation-delay: 300ms;">
+        <span class="font-medium text-sky-600 dark:text-sky-400">Yamit Ehrlich</span><sup>1</sup>,
+        <span class="font-medium text-sky-600 dark:text-sky-400">Nimrod Berman</span><sup>2</sup>,
+        <span class="font-medium text-sky-600 dark:text-sky-400">Assaf Shocher</span><sup>1</sup>
+      </div>
 
-                <div>
-                    <h4 class="text-xl font-semibold mb-3">Attribute-Controlled Generation</h4>
-                    <div class="paper-card rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
-                        <img src="assets/spnn_attribs.jpg" alt="Single-attribute editing via NLBP" class="rounded-lg w-full">
-                        <p class="text-center text-sm mt-3 text-slate-600 dark:text-slate-400">
-                            We can enforce a single attribute (e.g., “Eyeglasses”) by modifying only one coordinate in the semantic space and applying gentle NLBP guidance,
-                            while leaving all other attributes and textures free for the diffusion prior to hallucinate.
-                        </p>
-                    </div>
-                </div>
+      <div class="affiliations text-md text-slate-500 dark:text-slate-400 animate-fade-in-up" style="animation-delay: 400ms;">
+        <sup>1</sup>Technion &nbsp;&nbsp; <sup>2</sup>Ben-Gurion University
+      </div>
 
-                <div>
-                  <h4 class="text-xl font-semibold mb-3">Multi-Attribute Conditional Generation</h4>
-                  <div class="paper-card rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
-                    <!-- Put your multi-edit image at assets/spnn_multi.jpg -->
-                    <img src="assets/spnn_multi.jpg" alt="Multi-attribute conditional generation via NLBP" class="rounded-lg w-full">
-                    <p class="text-center text-sm mt-3 text-slate-600 dark:text-slate-400">
-                      We simultaneously enforce multiple semantic constraints (e.g., <i>Male</i> + <i>Smiling</i> + <i>Eyeglasses</i>) by fixing several coordinates
-                      in the target logit vector and applying NLBP guidance during sampling. This effectively guiding the diffusion process to the intersection of these semantic manifolds.
-                    </p>
-                  </div>
-                </div>
+      <div class="flex items-center justify-center flex-wrap gap-4 pt-6 animate-fade-in-up" style="animation-delay: 500ms;">
+        <a href="https://arxiv.org/" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 rounded-lg font-semibold shadow-md hover:bg-slate-700 dark:hover:bg-slate-300 transition-transform duration-200 hover:-translate-y-0.5">
+          <i data-lucide="file-text" class="w-4 h-4"></i> Paper
+        </a>
+
+        <a href="assets/penrose.jpg" class="code-button coming-soon inline-flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white rounded-lg font-semibold shadow-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5" title="Coming soon 😉">
+          <i data-lucide="github" class="w-4 h-4"></i>
+          Code <span class="badge">coming soon</span>
+        </a>
+
+        <a href="#cite" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white rounded-lg font-semibold shadow-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5">
+          <i data-lucide="quote" class="w-4 h-4"></i> Cite
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero Figure -->
+    <section class="mt-16 md:mt-20">
+      <div class="paper-card compact rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
+        <img src="assets/spnn_fig_method.jpg" alt="SPNN block architecture diagram" class="rounded-lg figure-img">
+        <p class="text-center text-sm mt-2 text-slate-600 dark:text-slate-400">
+          <b>SPNN architecture.</b> A surjective coupling block with an explicit pseudo-inverse $g^\dagger$ implemented via an auxiliary network $r$.
+        </p>
+      </div>
+    </section>
+
+    <!-- Abstract -->
+    <section id="abstract" class="mt-12 md:mt-16">
+      <h3 class="text-2xl font-bold mb-4">Abstract</h3>
+      <p class="text-lg leading-relaxed text-slate-700 dark:text-slate-300">
+        The Moore-Penrose Pseudo-inverse (PInv) is the fundamental solution for linear systems. We generalize PInv to the non-linear regime and introduce
+        <b>Surjective Pseudo-invertible Neural Networks (SPNN)</b>, a class of architectures designed to admit a tractable non-linear pseudo-inverse.
+        Our construction satisfies reflexive Penrose-style consistency and supports null-space projection. Building on this, we formalize
+        <b>Non-Linear Back-Projection (NLBP)</b>, a method that enforces consistency constraints for non-linear surjective mappings.
+        We leverage SPNNs and NLBP to expand zero-shot inverse problems: extending diffusion-based null-space projection from linear degradations to
+        broad non-linear degradations (from optical distortions to semantic abstractions like classification), enabling zero-shot inversion and precise semantic control without retraining the diffusion prior.
+      </p>
+    </section>
+
+    <!-- Key Results -->
+<section class="mt-12 md:mt-16">
+  <h3 class="text-2xl font-bold mb-6">Key Results</h3>
+
+  <div class="space-y-10">
+    <div>
+      <h4 class="text-xl font-semibold mb-3">Reconstruction from Semantics</h4>
+      <div class="paper-card compact rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
+        <img src="assets/spnn_res.jpg" alt="Reconstruction from semantics (CelebA-HQ)" class="rounded-lg figure-img">
+        <p class="text-center text-sm mt-3 text-slate-600 dark:text-slate-400">
+          Using only a low-dimensional semantic measurement (e.g., 40 attribute logits), NLBP-guided diffusion reconstructs photorealistic faces that match the target semantics without retraining.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <h4 class="text-xl font-semibold mb-3">Attribute-Controlled Generation</h4>
+      <div class="paper-card compact rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
+        <img src="assets/spnn_attribs.jpg" alt="Single-attribute editing via NLBP" class="rounded-lg figure-img">
+        <p class="text-center text-sm mt-3 text-slate-600 dark:text-slate-400">
+          We enforce a single attribute (e.g., “Eyeglasses”) by modifying one coordinate in the semantic space and applying gentle NLBP guidance,
+          while leaving all other attributes free for the diffusion prior to hallucinate.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <h4 class="text-xl font-semibold mb-3">Multi-Attribute Conditional Generation</h4>
+      <div class="paper-card compact rounded-xl border border-slate-200 shadow-lg overflow-hidden p-4">
+        <img src="assets/spnn_multi.jpg" alt="Multi-attribute conditional generation via NLBP" class="rounded-lg figure-img">
+        <p class="text-center text-sm mt-3 text-slate-600 dark:text-slate-400">
+          We simultaneously enforce multiple semantic constraints (e.g., <i>Male</i> + <i>Smiling</i> + <i>Eyeglasses</i>) by fixing several coordinates in the target logit vector and applying NLBP guidance during sampling.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
 
 
-            </div>
-        </section>
-
-        <!-- Citation -->
-        <section id="cite" class="mt-12 md:mt-16">
-            <h3 class="text-2xl font-bold mb-4">Citation</h3>
-            <div class="bibtex-block relative bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
+    <!-- Citation -->
+    <section id="cite" class="mt-12 md:mt-16">
+      <h3 class="text-2xl font-bold mb-4">Citation</h3>
+      <div class="bibtex-block relative bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
 <pre id="bibtex-content" class="whitespace-pre-wrap text-sm text-slate-800 dark:text-slate-200 overflow-x-auto">@misc{spnn2026pseudo_invertible,
   title        = {Pseudo-Invertible Neural Networks},
   author       = {Yamit Ehrlich and Nimrod Berman and Assaf Shocher},
   year         = {2026},
   note         = {Preprint, under review},
-  <!-- TODO: howpublished = {GitHub: assafshocher/SPNN}, url = {https://github.com/assafshocher/PINN} -->
+  howpublished = {Project page},
+  url          = {https://yamitehrlich.github.io/spnn-project-page/}
 }</pre>
-                <button id="copy-button" class="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5" onclick="copyBibtex()">
-                    <i data-lucide="copy" class="w-4 h-4"></i>
-                    Copy
-                </button>
-            </div>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-3">
-                <!-- TODO: once arXiv entry exists, replace this with the official BibTeX. -->
-            </p>
-        </section>
+        <button id="copy-button" class="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-600 transition-transform duration-200 hover:-translate-y-0.5" onclick="copyBibtex()">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          Copy
+        </button>
+      </div>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-3">
+        <!-- TODO: once arXiv entry exists, replace this with the official BibTeX. -->
+      </p>
+    </section>
 
-        <!-- Acknowledgements -->
-        <section class="mt-12 md:mt-16">
-            <h3 class="text-2xl font-bold mb-4">Acknowledgements</h3>
-            <p class="text-slate-700 dark:text-slate-300 leading-relaxed">
-                <!-- TODO: Add funding/support sentence if needed -->
-            </p>
-        </section>
+    <!-- Acknowledgements -->
+    <section class="mt-12 md:mt-16">
+      <h3 class="text-2xl font-bold mb-4">Acknowledgements</h3>
+      <p class="text-slate-700 dark:text-slate-300 leading-relaxed">
+        A.S. is supported by the Chaya Career Advancement Chair.
+      </p>
+    </section>
 
-    </main>
+  </main>
 
-    <footer class="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
-        <p>&copy; 2026 SPNN Project</p>
-    </footer>
+  <footer class="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
+    <p>&copy; 2026 SPNN Project</p>
+  </footer>
 
-    <script>
-        // Render Lucide icons
+  <script>
+    // Render Lucide icons
+    lucide.createIcons();
+
+    // BibTeX copy function
+    function copyBibtex() {
+      const bibtexText = document.getElementById('bibtex-content').textContent;
+      const copyButton = document.getElementById('copy-button');
+
+      navigator.clipboard.writeText(bibtexText).then(() => {
+        const originalContent = copyButton.innerHTML;
+        copyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
         lucide.createIcons();
 
-        // BibTeX copy function
-        function copyBibtex() {
-            const bibtexText = document.getElementById('bibtex-content').textContent;
-            const copyButton = document.getElementById('copy-button');
+        setTimeout(() => {
+          copyButton.innerHTML = originalContent;
+          lucide.createIcons();
+        }, 2000);
+      }).catch(err => console.error('Failed to copy BibTeX: ', err));
+    }
 
-            navigator.clipboard.writeText(bibtexText).then(() => {
-                const originalContent = copyButton.innerHTML;
-                copyButton.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
-                lucide.createIcons();
+    // KaTeX auto-rendering configuration
+    document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$',  right: '$',  display: false },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true }
+      ],
+      throwOnError: false
+    });
 
-                setTimeout(() => {
-                    copyButton.innerHTML = originalContent;
-                    lucide.createIcons();
-                }, 2000);
-            }).catch(err => console.error('Failed to copy BibTeX: ', err));
-        }
 
-        // KaTeX auto-rendering configuration
-        document.addEventListener("DOMContentLoaded", function() {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false},
-                    {left: '\\(', right: '\\)', display: false},
-                    {left: '\\[', right: '\\]', display: true}
-                ],
-                throwOnError : false
-            });
-
-            // Logic for the sticky navigation bar
-            const stickyNav = document.getElementById('sticky-nav');
-            if (stickyNav) {
-                window.addEventListener('scroll', () => {
-                    if (window.scrollY > 250) {
-                        stickyNav.classList.add('scrolled');
-                    } else {
-                        stickyNav.classList.remove('scrolled');
-                    }
-                });
-            }
+      // Sticky nav
+      const stickyNav = document.getElementById('sticky-nav');
+      if (stickyNav) {
+        window.addEventListener('scroll', () => {
+          if (window.scrollY > 250) stickyNav.classList.add('scrolled');
+          else stickyNav.classList.remove('scrolled');
         });
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>
